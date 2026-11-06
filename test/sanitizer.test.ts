@@ -83,5 +83,27 @@ test("sanitizeText handles multiple email addresses across a paragraph", () => {
   assert.equal(res.redactedTypes.includes("email_address"), true);
 });
 
+test("sanitizeText scrubs modern sk-proj OpenAI keys and JSON credentials", () => {
+  const jsonBody = '{"user": "dev", "password": "superSecretPassword99!", "apiKey": "sk-proj-abc12345678901234567890xyz"}';
+  const res = sanitizeText(jsonBody);
+
+  assert.ok(!res.text.includes("superSecretPassword99!"));
+  assert.ok(!res.text.includes("sk-proj-abc12345678901234567890xyz"));
+  assert.ok(res.text.includes("[REDACTED_SECRET]"));
+  assert.ok(res.text.includes("[REDACTED_API_KEY]"));
+  assert.equal(res.redactedTypes.includes("password_secret"), true);
+  assert.equal(res.redactedTypes.includes("api_key"), true);
+});
+
+test("sanitizeText scrubs raw unformatted credit card digits", () => {
+  const rawCC = "Payment failed for 4111222233334444 on gateway";
+  const res = sanitizeText(rawCC);
+
+  assert.ok(!res.text.includes("4111222233334444"));
+  assert.ok(res.text.includes("[REDACTED_CREDIT_CARD]"));
+  assert.equal(res.redactedTypes.includes("credit_card"), true);
+});
+
+
 
 

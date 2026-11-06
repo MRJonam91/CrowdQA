@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2026-11-06
+
+### Fixed & Improved
+- **Task Completion Rate (TCR) Gate Enforcement**: Quality gates now explicitly fail builds when blocker defects lower the scenario task completion rate below `minTaskCompletionRate`.
+- **Cross-Step Clustering Isolation**: Prevented false-positive defect clustering across distinct scenario steps when findings share similar generic descriptions (e.g. "submit button frozen").
+- **Extended Zero-Leak PII Sanitization**: Added full support for modern OpenAI `sk-proj-...` keys, Anthropic `sk-ant-...`, GitLab PATs, Slack credentials, JSON-structured password parameters (`"password": "..."`), and 15/16-digit unformatted credit cards.
+- **Port Conflict Handling in Report Server**: Handled `EADDRINUSE` gracefully in `crowdqa serve` with actionable suggestion to pick an alternative port.
+- **Expanded Test Coverage**: Added tests for TCR gate failures, cross-step clustering isolation, and modern token redactions (44 passing tests).
+
 ## [1.0.0] - 2026-11-06
 
 ### Added

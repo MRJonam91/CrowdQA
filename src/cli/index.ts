@@ -267,9 +267,9 @@ function handleReport(options: Record<string, string>): void {
   const campaign = validateCampaign(JSON.parse(readFileSync(campaignFile, "utf8")));
 
   // Apply CLI overrides to campaign gates if specified
-  if (options["max-blockers"]) campaign.gates.maxBlockers = parseInt(options["max-blockers"], 10);
-  if (options["max-critical"]) campaign.gates.maxCritical = parseInt(options["max-critical"], 10);
-  if (options["min-tcr"]) campaign.gates.minTaskCompletionRate = parseInt(options["min-tcr"], 10);
+  if (options["max-blockers"] !== undefined) campaign.gates.maxBlockers = parseInt(options["max-blockers"], 10);
+  if (options["max-critical"] !== undefined) campaign.gates.maxCritical = parseInt(options["max-critical"], 10);
+  if (options["min-tcr"] !== undefined) campaign.gates.minTaskCompletionRate = parseInt(options["min-tcr"], 10);
 
   const files = readdirSync(findingsDir).filter((f) => f.endsWith(".json"));
   const findings: SanitizedFinding[] = [];
@@ -306,7 +306,13 @@ function handleReport(options: Record<string, string>): void {
   console.log(`   JSON     : ${jsonPath}`);
   console.log(`   HTML     : ${htmlPath}`);
 
-  if (options.strict === "true" && report.metrics.gateEvaluation.status === "FAILED") {
+  const failRequested = options["fail-on-violation"] === "true" || options.strict === "true";
+  if (
+    failRequested &&
+    (report.metrics.gateEvaluation.status === "FAILED" ||
+      (options.strict === "true" && report.metrics.gateEvaluation.status === "CONDITIONAL"))
+  ) {
+    console.error(`\n❌ Quality gate violation: Report status is ${report.metrics.gateEvaluation.status}. Exiting with code 1.`);
     process.exit(1);
   }
 }
@@ -378,6 +384,15 @@ function handleServe(options: Record<string, string>): void {
   const server = createServer((_req, res) => {
     res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
     res.end(htmlContent);
+  });
+
+  server.on("error", (err: NodeJS.ErrnoException) => {
+    if (err.code === "EADDRINUSE") {
+      console.error(`❌ Error: Port ${port} is already in use. Specify a different port with --port <port>.`);
+    } else {
+      console.error(`❌ Server error: ${err.message}`);
+    }
+    process.exit(1);
   });
 
   server.listen(port, () => {

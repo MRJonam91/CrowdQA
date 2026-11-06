@@ -143,4 +143,59 @@ test("evaluateQualityGates evaluates multiple scenario steps correctly", () => {
   assert.equal(evalResult.status, "PASSED");
 });
 
+test("evaluateQualityGates fails when TCR drops below minTaskCompletionRate", () => {
+  const campaign = validateCampaign({
+    id: "c-tcr-fail",
+    title: "TCR Fail Campaign",
+    targetUrl: "https://example.com",
+    steps: [
+      { id: "s1", instruction: "1", expectedOutcome: "1" },
+      { id: "s2", instruction: "2", expectedOutcome: "2" },
+      { id: "s3", instruction: "3", expectedOutcome: "3" },
+      { id: "s4", instruction: "4", expectedOutcome: "4" },
+    ],
+    // Allow up to 2 blockers, but mandate >= 80% TCR (here 2 blocked steps out of 4 = 50% TCR)
+    gates: { maxBlockers: 2, maxCritical: 2, minTaskCompletionRate: 80, requireConsentProof: false },
+  });
+
+  const findings: FindingSubmission[] = [
+    {
+      id: "f-block-1",
+      campaignId: "c-tcr-fail",
+      testerId: "t1",
+      stepId: "s1",
+      title: "Step 1 blocker",
+      type: "functional_bug",
+      severity: "blocker",
+      reproducibility: "always",
+      environment: { browser: "Chrome", os: "macOS", viewport: "1920x1080" },
+      stepsToReproduce: ["1"],
+      expectedBehavior: "pass",
+      actualBehavior: "fail",
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: "f-block-2",
+      campaignId: "c-tcr-fail",
+      testerId: "t1",
+      stepId: "s2",
+      title: "Step 2 blocker",
+      type: "functional_bug",
+      severity: "blocker",
+      reproducibility: "always",
+      environment: { browser: "Chrome", os: "macOS", viewport: "1920x1080" },
+      stepsToReproduce: ["2"],
+      expectedBehavior: "pass",
+      actualBehavior: "fail",
+      createdAt: new Date().toISOString(),
+    },
+  ];
+
+  const evalResult = evaluateQualityGates(campaign, findings, []);
+  assert.equal(evalResult.passed, false);
+  assert.equal(evalResult.status, "FAILED");
+  assert.ok(evalResult.reasons.some((r) => r.includes("Task completion rate")));
+});
+
+
 

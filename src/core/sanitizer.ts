@@ -15,45 +15,51 @@ export function sanitizeText(input: string): RedactionResult {
 
   // 1. JWT tokens
   const jwtRegex = /\beyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\b/g;
-  if (jwtRegex.test(sanitized)) {
-    sanitized = sanitized.replace(jwtRegex, "[REDACTED_JWT]");
+  sanitized = sanitized.replace(jwtRegex, () => {
     detected.add("jwt_token");
-  }
+    return "[REDACTED_JWT]";
+  });
 
   // 2. Bearer Authorization headers
-  const bearerRegex = /Bearer\s+[a-zA-Z0-9_\-\.]{16,}/gi;
-  if (bearerRegex.test(sanitized)) {
-    sanitized = sanitized.replace(bearerRegex, "Bearer [REDACTED_TOKEN]");
+  const bearerRegex = /bearer\s+[a-zA-Z0-9_\-\.]{16,}/gi;
+  sanitized = sanitized.replace(bearerRegex, () => {
     detected.add("bearer_token");
-  }
+    return "Bearer [REDACTED_TOKEN]";
+  });
 
-  // 3. API Keys (common patterns sk-..., api_key=..., ghp_...)
-  const apiKeyRegex = /\b(sk-[a-zA-Z0-9]{20,}|ghp_[a-zA-Z0-9]{20,}|ai_key_[a-zA-Z0-9]{12,})\b/g;
-  if (apiKeyRegex.test(sanitized)) {
-    sanitized = sanitized.replace(apiKeyRegex, "[REDACTED_API_KEY]");
+  // 3. API Keys (sk-..., sk-proj-..., sk-ant-..., ghp_..., github_pat_..., glpat-..., xoxb-..., ai_key_...)
+  const apiKeyRegex = /\b(sk-[a-zA-Z0-9_\-]{20,}|ghp_[a-zA-Z0-9]{20,}|github_pat_[a-zA-Z0-9_]{20,}|glpat-[a-zA-Z0-9_\-]{20,}|xox[baprs]-[a-zA-Z0-9\-]{10,}|ai_key_[a-zA-Z0-9]{12,})\b/g;
+  sanitized = sanitized.replace(apiKeyRegex, () => {
     detected.add("api_key");
-  }
+    return "[REDACTED_API_KEY]";
+  });
 
-  // 4. Passwords / Secrets in query string or key-value
+  // 4. Passwords / Secrets in query string (password=...) or JSON ("password": "...")
   const secretParamRegex = /(?<=(password|passwd|secret|authToken|auth_key)=)([^&\s]+)/gi;
-  if (secretParamRegex.test(sanitized)) {
-    sanitized = sanitized.replace(secretParamRegex, "[REDACTED_SECRET]");
+  sanitized = sanitized.replace(secretParamRegex, () => {
     detected.add("password_secret");
-  }
+    return "[REDACTED_SECRET]";
+  });
+
+  const secretJsonRegex = /(["']?(?:password|passwd|secret|authToken|auth_key)["']?\s*:\s*["'])([^"'\r\n]+)(["'])/gi;
+  sanitized = sanitized.replace(secretJsonRegex, (_match, prefix, _val, suffix) => {
+    detected.add("password_secret");
+    return `${prefix}[REDACTED_SECRET]${suffix}`;
+  });
 
   // 5. Email addresses
   const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g;
-  if (emailRegex.test(sanitized)) {
-    sanitized = sanitized.replace(emailRegex, "[REDACTED_EMAIL]");
+  sanitized = sanitized.replace(emailRegex, () => {
     detected.add("email_address");
-  }
+    return "[REDACTED_EMAIL]";
+  });
 
   // 6. Credit Card Numbers (13 to 19 digits)
   const ccRegex = /\b(?:\d{4}[- ]?){3}\d{4}\b|\b\d{15,16}\b/g;
-  if (ccRegex.test(sanitized)) {
-    sanitized = sanitized.replace(ccRegex, "[REDACTED_CREDIT_CARD]");
+  sanitized = sanitized.replace(ccRegex, () => {
     detected.add("credit_card");
-  }
+    return "[REDACTED_CREDIT_CARD]";
+  });
 
   return {
     text: sanitized,

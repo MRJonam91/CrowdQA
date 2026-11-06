@@ -65,6 +65,17 @@ export function evaluateQualityGates(
     reasons.push(`Critical defects (${critical}) exceeded allowed threshold (${campaign.gates.maxCritical})`);
   }
 
+  const blockedSteps = new Set(findings.filter((f) => f.severity === "blocker").map((f) => f.stepId).filter(Boolean));
+  const totalSteps = Math.max(1, campaign.steps.length);
+  const completedSteps = Math.max(0, totalSteps - blockedSteps.size);
+  const taskCompletionRate = Math.round((completedSteps / totalSteps) * 100);
+
+  if (taskCompletionRate < campaign.gates.minTaskCompletionRate) {
+    reasons.push(
+      `Task completion rate (${taskCompletionRate}%) is below minimum required threshold (${campaign.gates.minTaskCompletionRate}%)`
+    );
+  }
+
   if (campaign.gates.requireConsentProof) {
     const testerIds = new Set(findings.map((f) => f.testerId));
     const signedTesters = new Set(consents.map((c) => c.testerId));
@@ -79,7 +90,7 @@ export function evaluateQualityGates(
     return { passed: true, status: "PASSED", reasons: ["All quality gates met successfully."] };
   }
 
-  if (blockers > campaign.gates.maxBlockers) {
+  if (blockers > campaign.gates.maxBlockers || taskCompletionRate < campaign.gates.minTaskCompletionRate) {
     return { passed: false, status: "FAILED", reasons };
   }
 

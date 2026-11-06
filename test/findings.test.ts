@@ -108,6 +108,45 @@ test("clusterFindings keeps distinct issues in separate clusters", () => {
   assert.equal(clusters[1]!.severity, "minor");
 });
 
+test("clusterFindings does not cluster similar wording across explicitly different steps", () => {
+  const f1: FindingSubmission = {
+    id: "f-step1",
+    campaignId: "c-1",
+    testerId: "t-1",
+    stepId: "step-search",
+    title: "Submit button does not respond on tap",
+    type: "functional_bug",
+    severity: "major",
+    reproducibility: "always",
+    environment: { browser: "Chrome", os: "Android", viewport: "360x780" },
+    stepsToReproduce: ["tap search"],
+    expectedBehavior: "searches",
+    actualBehavior: "freezes",
+    createdAt: new Date().toISOString(),
+  };
+
+  const f2: FindingSubmission = {
+    id: "f-step3",
+    campaignId: "c-1",
+    testerId: "t-2",
+    stepId: "step-pay",
+    title: "Submit button does not respond on tap",
+    type: "functional_bug",
+    severity: "blocker",
+    reproducibility: "always",
+    environment: { browser: "Chrome", os: "iOS", viewport: "390x844" },
+    stepsToReproduce: ["tap pay"],
+    expectedBehavior: "pays",
+    actualBehavior: "freezes",
+    createdAt: new Date().toISOString(),
+  };
+
+  const clusters = clusterFindings([sanitizeFinding(f1), sanitizeFinding(f2)]);
+  assert.equal(clusters.length, 2);
+  assert.notEqual(clusters[0]!.stepId, clusters[1]!.stepId);
+});
+
+
 test("validateFindingSubmission rejects invalid types and severities", () => {
   assert.throws(
     () =>

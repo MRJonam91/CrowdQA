@@ -118,8 +118,11 @@ export function clusterFindings(findings: SanitizedFinding[]): DeduplicatedClust
     let matchedCluster: DeduplicatedCluster | null = null;
 
     for (const cluster of clusters) {
-      // Must belong to the same step or type to cluster
-      const sameStep = finding.stepId && cluster.stepId && finding.stepId === cluster.stepId;
+      // Do not cluster across explicitly distinct scenario steps
+      const conflictStep = Boolean(finding.stepId && cluster.stepId && finding.stepId !== cluster.stepId);
+      if (conflictStep) continue;
+
+      const sameStep = Boolean(finding.stepId && cluster.stepId && finding.stepId === cluster.stepId);
       const sameType = finding.type === cluster.type;
 
       if (sameStep || sameType) {
