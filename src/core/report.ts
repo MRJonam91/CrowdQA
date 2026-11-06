@@ -510,3 +510,29 @@ function calcPercent(count: number, total: number): number {
   if (total <= 0) return 0;
   return Math.min(100, Math.round((count / total) * 100));
 }
+
+export function generateBadgeSvg(score: number, grade: string): string {
+  const color = score >= 90 ? "#10b981" : score >= 75 ? "#6366f1" : score >= 60 ? "#f59e0b" : "#ef4444";
+  const label = "CrowdScore";
+  const value = `${grade} (${score}/100)`;
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="160" height="20" role="img" aria-label="${label}: ${value}">
+  <linearGradient id="b" x2="0" y2="100%">
+    <stop offset="0" stop-color="#bbb" stop-opacity=".1"/>
+    <stop offset="1" stop-opacity=".1"/>
+  </linearGradient>
+  <clipPath id="r">
+    <rect width="160" height="20" rx="3" fill="#fff"/>
+  </clipPath>
+  <g clip-path="url(#r)">
+    <rect width="78" height="20" fill="#334155"/>
+    <rect x="78" width="82" height="20" fill="${color}"/>
+    <rect width="160" height="20" fill="url(#b)"/>
+  </g>
+  <g fill="#fff" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif" text-rendering="geometricPrecision" font-size="110">
+    <text x="400" y="140" transform="scale(.1)" fill="#fff" textLength="680">${label}</text>
+    <text x="1180" y="140" transform="scale(.1)" font-weight="bold" fill="#fff" textLength="720">${value}</text>
+  </g>
+</svg>`;
+}
+

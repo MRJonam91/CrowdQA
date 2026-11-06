@@ -1,6 +1,6 @@
-# Launch Checklist — CrowdQA v0.3.0-beta
+# Launch Checklist — CrowdQA v1.0.0
 
-Formal pre-publication verification checklist for CrowdQA Beta release.
+Formal verification checklist for CrowdQA v1.0.0 General Availability release.
 
 ## Quality & Governance Checklist
 
@@ -10,18 +10,20 @@ Formal pre-publication verification checklist for CrowdQA Beta release.
 - [x] Attribution and rights breakdown in `LICENSING.md`
 - [x] Funding and donation channels configured in `.github/FUNDING.yml` and READMEs
 - [x] GitHub Actions CI workflow passing with core size guard (< 1,500 non-empty LOC)
-- [x] 100% test pass rate across Node.js 22 and 24 (35 passing tests)
-- [x] Anti-plagiarism markers registered in `_provenance/CrowdQA.json`
+- [x] 100% test pass rate across Node.js 22 and 24 (40 passing tests)
+- [x] Origin provenance signature registered
 - [x] Zero external runtime dependencies
 - [x] SARIF 2.1.0, JUnit XML, CSV, and GitHub issue card export engine
 - [x] CrowdScore™ benchmark rating algorithm (Grade A+ to F) and Defect Density Index
-- [x] Built-in local HTTP server for interactive HTML report preview
+- [x] Built-in local HTTP server for interactive HTML report preview (`crowdqa serve`)
 - [x] Interactive HTML dashboard with live keyword search and severity filter tabs
+- [x] Environment pre-flight diagnostics (`crowdqa doctor`) and dynamic SVG badge generator (`crowdqa badge`)
 - [x] Batch findings ingestion (`crowdqa submit --dir ...`)
-- [x] Campaign configuration linter and heuristic categorization
+- [x] Campaign configuration linter and heuristic categorization (`crowdqa check`)
 - [x] Bilingual READMEs (Italian / English) with terminal SVG demo
 - [x] Zero-leak automated PII sanitization enabled by default
-- [x] GitHub repository initialized and synchronized with remote
+- [x] Development roadmap published in `docs/ROADMAP.md`
+- [x] GitHub repository synchronized and public
 
 ## Promotion Strategy & Target Audiences
 

@@ -1,6 +1,6 @@
 {
   "name": "crowdqa",
-  "version": "0.3.0-beta",
+  "version": "1.0.0",
   "description": "Structured crowd testing and human QA engine: campaign orchestrator, tester consent/NDA generator, bug intake with PII redaction, clustering, and audit report synthesis.",
   "type": "module",
   "license": "AGPL-3.0-only",

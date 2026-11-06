@@ -81,3 +81,29 @@ test("CLI submit --dir processes batch findings", () => {
   assert.ok(output.includes("Batch ingested and sanitized"));
 });
 
+test("CLI doctor executes environment health checks", () => {
+  const output = execSync("node src/cli/index.ts doctor", {
+    encoding: "utf8",
+    env: { ...process.env, NO_SPONSOR: "1" },
+  }).trim();
+
+  assert.ok(output.includes("CrowdQA Environment Diagnostics"));
+  assert.ok(output.includes("Node.js Runtime"));
+  assert.ok(output.includes("Cryptographic Engine"));
+});
+
+test("CLI badge generates SVG badge from report", () => {
+  const badgeFile = "test-badge-cli.svg";
+  if (existsSync(badgeFile)) unlinkSync(badgeFile);
+
+  const output = execSync(`node src/cli/index.ts badge --report test-reports/audit-report-campaign-ecommerce-checkout.json --out ${badgeFile}`, {
+    encoding: "utf8",
+    env: { ...process.env, NO_SPONSOR: "1" },
+  }).trim();
+
+  assert.ok(output.includes("Generated CrowdScore badge SVG"));
+  assert.ok(existsSync(badgeFile));
+  if (existsSync(badgeFile)) unlinkSync(badgeFile);
+});
+
+

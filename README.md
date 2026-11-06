@@ -10,7 +10,7 @@
 
 > **Structured crowd testing and human QA engine: campaign orchestrator, tester consent/NDA generator, automated PII scrubbing, bug clustering, and audit report synthesis.**
 
-[Italiano](README.it.md) · [Architecture](docs/ARCHITECTURE.md) · [Sample Report](examples/sample-audit-report.md) · [Launch Checklist](docs/LAUNCH.md)
+[Italiano](README.it.md) · [Architecture](docs/ARCHITECTURE.md) · [Sample Report](examples/sample-audit-report.md) · [Roadmap](docs/ROADMAP.md) · [Launch Checklist](docs/LAUNCH.md)
 
 <p align="center">
   <img src="docs/assets/demo.svg" alt="CrowdQA terminal demo" width="760"/>
@@ -74,8 +74,10 @@ npx crowdqa report --campaign crowdqa.campaign.json --findings-dir findings/ --o
 | `crowdqa cluster --findings-dir <dir>` | Group and deduplicate findings across crowd submissions |
 | `crowdqa report --campaign <file> --findings-dir <dir>` | Generate Markdown, JSON, and HTML audit reports |
 | `crowdqa export --report <file.json> --format <sarif\|junit\|csv\|issues>` | Export audit findings to SARIF 2.1.0, JUnit XML, CSV, or GitHub Issues |
+| `crowdqa badge --report <file.json> [--out <file.svg>]` | Generate embeddable CrowdScore™ SVG badge for README / PRs |
 | `crowdqa serve --report <path.html> [--port 3000]` | Host local interactive preview server for HTML audit report |
 | `crowdqa verify --report <file>` | Verify report cryptographic signature and quality gates |
+| `crowdqa doctor` | Run diagnostic pre-flight health checks on runtime & environment |
 | `crowdqa demo` | Run full simulation with sample testers and findings |
 
 ---

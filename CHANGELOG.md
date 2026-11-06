@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2026-11-06
+
+### Added
+- **General Availability Release**: Production release of CrowdQA for structured human QA and crowd testing campaign orchestration.
+- **Dynamic SVG Badge Generator**: Command `crowdqa badge --report <file.json> [--out <file.svg>]` to render live CrowdScore™ SVG badges for READMEs and PR checks.
+- **Diagnostic Health Check**: Command `crowdqa doctor` providing pre-flight verification of Node runtime (>= 22.18), file system permissions, and cryptographic capabilities.
+- **Public Roadmap**: Published development milestones in `docs/ROADMAP.md` covering Phase 1 (Core Engine), Phase 2 (Team Hub & Issue Trackers), and Phase 3 (Federated Tester Pool).
+- **Comprehensive Test Suite**: Reached 40 unit and integration tests passing with 100% success rate under native Node.js test runner.
+
 ## [0.3.0-beta] - 2026-11-06
 
 ### Added

@@ -5,7 +5,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { validateCampaign } from "../src/core/campaign.ts";
 import { createTesterConsent } from "../src/core/consent.ts";
-import { generateAuditReport, renderHtmlReport, renderMarkdownReport } from "../src/core/report.ts";
+import { generateAuditReport, generateBadgeSvg, renderHtmlReport, renderMarkdownReport } from "../src/core/report.ts";
 import { sanitizeFinding } from "../src/core/sanitizer.ts";
 import type { FindingSubmission } from "../src/core/types.ts";
 
@@ -95,4 +95,45 @@ test("computeAuditMetrics calculates CrowdScore, Grade and Defect Density accura
   assert.equal(report.metrics.grade, "A+");
   assert.equal(report.metrics.defectDensityIndex, 0.5);
 });
+
+test("generateBadgeSvg outputs valid SVG elements", () => {
+  const svg = generateBadgeSvg(94, "A");
+  assert.ok(svg.includes("<svg"));
+  assert.ok(svg.includes("CrowdScore"));
+  assert.ok(svg.includes("A (94/100)"));
+  assert.ok(svg.includes("</svg>"));
+});
+
+test("computeAuditMetrics floors CrowdScore at 0 for catastrophic defect runs", () => {
+  const campaign = validateCampaign({
+    id: "camp-disaster",
+    title: "Disaster Campaign",
+    targetUrl: "https://example.com",
+    steps: [{ id: "s-1", instruction: "1", expectedOutcome: "1" }],
+  });
+
+  const massiveBlockers: FindingSubmission[] = Array.from({ length: 5 }, (_, i) => ({
+    id: `f-blocker-${i}`,
+    campaignId: campaign.id,
+    testerId: `tester-${i}`,
+    stepId: "s-1",
+    title: `Fatal system crash ${i}`,
+    type: "functional_bug",
+    severity: "blocker",
+    reproducibility: "always",
+    environment: { browser: "Chrome", os: "macOS", viewport: "1920x1080" },
+    stepsToReproduce: ["start"],
+    expectedBehavior: "runs",
+    actualBehavior: "kernel panic",
+    createdAt: new Date().toISOString(),
+  }));
+
+  const report = generateAuditReport(campaign, massiveBlockers.map((b) => sanitizeFinding(b)), []);
+  assert.equal(report.metrics.blockersCount, 5);
+  assert.equal(report.metrics.crowdScore, 0);
+  assert.equal(report.metrics.grade, "F");
+  assert.equal(report.metrics.gateEvaluation.status, "FAILED");
+});
+
+
 

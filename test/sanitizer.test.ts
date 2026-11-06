@@ -75,4 +75,13 @@ test("sanitizeText scrubs mixed lowercase bearer tokens and ghp GitHub tokens", 
   assert.ok(res.text.includes("[REDACTED_API_KEY]"));
 });
 
+test("sanitizeText handles multiple email addresses across a paragraph", () => {
+  const text = "Contact alice@qa.io and bob-expert@test.org for details.";
+  const res = sanitizeText(text);
+  assert.ok(!res.text.includes("alice@qa.io"));
+  assert.ok(!res.text.includes("bob-expert@test.org"));
+  assert.equal(res.redactedTypes.includes("email_address"), true);
+});
+
+
 

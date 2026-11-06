@@ -10,7 +10,7 @@
 
 > **Motore per test umani e crowd testing strutturato: orchestrazione campagne, accordi di consenso/NDA con firma crittografica, anonimizzazione automatica dati sensibili (PII), clustering anomalie e report di audit sintetico.**
 
-[English](README.md) · [Architettura](docs/ARCHITECTURE.md) · [Esempio Report](examples/sample-audit-report.md) · [Checklist Lancio](docs/LAUNCH.md)
+[English](README.md) · [Architettura](docs/ARCHITECTURE.md) · [Esempio Report](examples/sample-audit-report.md) · [Roadmap](docs/ROADMAP.md) · [Checklist Lancio](docs/LAUNCH.md)
 
 <p align="center">
   <img src="docs/assets/demo.svg" alt="Demo terminale CrowdQA" width="760"/>
@@ -74,8 +74,10 @@ npx crowdqa report --campaign crowdqa.campaign.json --findings-dir findings/ --o
 | `crowdqa cluster --findings-dir <dir>` | Raggruppa e deduplica le anomalie raccolte |
 | `crowdqa report --campaign <file> --findings-dir <dir>` | Compila i report di audit in Markdown, JSON e HTML |
 | `crowdqa export --report <file.json> --format <sarif\|junit\|csv\|issues>` | Esporta i risultati in SARIF 2.1.0, JUnit XML, CSV o issue GitHub |
+| `crowdqa badge --report <file.json> [--out <file.svg>]` | Genera il badge SVG dinamico del punteggio CrowdScore™ per README / PR |
 | `crowdqa serve --report <path.html> [--port 3000]` | Avvia un server locale per visualizzare il report HTML interattivo |
 | `crowdqa verify --report <file>` | Verifica la firma di provenienza e i criteri di qualità |
+| `crowdqa doctor` | Esegue il controllo diagnostico su runtime, permessi e ambiente |
 | `crowdqa demo` | Esegue una simulazione completa con tester e anomalie d'esempio |
 
 ---

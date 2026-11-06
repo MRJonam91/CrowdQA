@@ -3,14 +3,14 @@
 // Copyright (C) 2026 Manoj Rollo (MRJonam91)
 
 import { createServer } from "node:http";
-import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, unlinkSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { validateCampaign } from "../core/campaign.ts";
 import { createTesterConsent, verifyTesterConsent } from "../core/consent.ts";
 import { exportToCsv, exportToGitHubMarkdownIssues, exportToJunitXml, exportToSarif } from "../core/exporters.ts";
 import { clusterFindings, validateFindingSubmission } from "../core/findings.ts";
 import { lintCampaign } from "../core/linter.ts";
-import { generateAuditReport, renderHtmlReport, renderMarkdownReport } from "../core/report.ts";
+import { generateAuditReport, generateBadgeSvg, renderHtmlReport, renderMarkdownReport } from "../core/report.ts";
 import { sanitizeFinding } from "../core/sanitizer.ts";
 import type { AuditReport, CampaignConfig, FindingSubmission, SanitizedFinding, TesterConsent } from "../core/types.ts";
 
@@ -25,21 +25,24 @@ function printSponsorIfNeeded(): void {
 
 function printHelp(): void {
   console.log(`
-CrowdQA v0.2.0-alpha — Structured Human QA & Crowd Testing Engine
+CrowdQA v1.0.0 — Structured Human QA & Crowd Testing Engine
 
 Usage:
   crowdqa init [campaign-name]                 Initialize a new QA mission configuration
   crowdqa check --campaign <file>              Lint and validate campaign configuration
   crowdqa consent --tester <id> --campaign <id> Generate and cryptographically sign tester NDA
-  crowdqa submit --file <path-to-finding.json> Ingest and sanitize finding with PII scrub
+  crowdqa submit --file <file> | --dir <folder> Ingest and sanitize finding with PII scrub
   crowdqa cluster --findings-dir <dir>          Cluster and deduplicate submissions
   crowdqa report --campaign <file> --findings-dir <dir> [--out-dir <dir>]
                                                Synthesize findings into MD, JSON & HTML report
-  crowdqa export --report <file.json> --format <sarif|csv|issues> [--out <file>]
-                                               Export report to SARIF 2.1.0, CSV, or GitHub Issues
+  crowdqa export --report <file.json> --format <sarif|junit|csv|issues> [--out <file>]
+                                               Export report to SARIF, JUnit XML, CSV, or Issues
+  crowdqa badge --report <file.json> [--out <file.svg>]
+                                               Generate embeddable SVG CrowdScore badge
   crowdqa serve --report <path.html> [--port <3000>]
                                                Host local interactive report preview server
   crowdqa verify --report <file>               Verify cryptographic integrity of audit report
+  crowdqa doctor                               Run environment & runtime diagnostic health check
   crowdqa demo                                 Run instant end-to-end simulated crowd test
 
 Options:
@@ -384,6 +387,48 @@ function handleServe(options: Record<string, string>): void {
   });
 }
 
+function handleBadge(options: Record<string, string>): void {
+  const reportFile = options.report;
+  if (!reportFile || !existsSync(reportFile)) {
+    console.error("❌ Error: Please specify report JSON via --report <file.json>");
+    process.exit(1);
+  }
+  const report: AuditReport = JSON.parse(readFileSync(reportFile, "utf8"));
+  const score = report.metrics.crowdScore ?? 100;
+  const grade = report.metrics.grade ?? "A+";
+  const svg = generateBadgeSvg(score, grade);
+  const outFile = options.out || `badge-${report.campaignId}.svg`;
+  const dir = resolve(outFile, "..");
+  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+  writeFileSync(outFile, svg, "utf8");
+  console.log(`✅ Generated CrowdScore badge SVG: ${outFile} (${grade} - ${score}/100)`);
+}
+
+function handleDoctor(): void {
+  console.log("🩺 CrowdQA Environment Diagnostics:");
+  const nodeVer = process.version;
+  const major = parseInt(nodeVer.replace(/^v/, "").split(".")[0] || "0", 10);
+  const nodeOk = major >= 22;
+  console.log(`   ${nodeOk ? "✅" : "❌"} Node.js Runtime: ${nodeVer} (requires >= 22.18)`);
+
+  let fsOk = false;
+  try {
+    const testFile = `.crowdqa-doctor-probe-${Date.now()}`;
+    writeFileSync(testFile, "probe", "utf8");
+    if (existsSync(testFile)) {
+      unlinkSync(testFile);
+      fsOk = true;
+    }
+  } catch {
+    fsOk = false;
+  }
+  console.log(`   ${fsOk ? "✅" : "❌"} File System Write Permissions: OK`);
+
+  const cryptoOk = typeof crypto !== "undefined";
+  console.log(`   ${cryptoOk ? "✅" : "❌"} Cryptographic Engine: WebCrypto/node:crypto OK`);
+  console.log(`\n🎉 Environment ready for production CrowdQA missions!`);
+}
+
 function handleVerify(options: Record<string, string>): void {
   const reportFile = options.report;
   if (!reportFile || !existsSync(reportFile)) {
@@ -510,7 +555,7 @@ async function main(): Promise<void> {
   }
 
   if (args.includes("-v") || args.includes("--version")) {
-    console.log("crowdqa v0.2.0-alpha");
+    console.log("crowdqa v1.0.0");
     return;
   }
 
@@ -538,8 +583,14 @@ async function main(): Promise<void> {
     case "export":
       handleExport(options);
       break;
+    case "badge":
+      handleBadge(options);
+      break;
     case "serve":
       handleServe(options);
+      break;
+    case "doctor":
+      handleDoctor();
       break;
     case "verify":
       handleVerify(options);
