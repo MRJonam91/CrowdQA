@@ -8,3 +8,5 @@ export * from "./core/consent.ts";
 export * from "./core/sanitizer.ts";
 export * from "./core/findings.ts";
 export * from "./core/report.ts";
+export * from "./core/exporters.ts";
+export * from "./core/linter.ts";

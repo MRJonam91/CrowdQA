@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0-alpha] - 2026-11-06
+
+### Added
+- **SARIF 2.1.0 Exporter**: Native export to OASIS SARIF format (`crowdqa export --format sarif`) enabling direct ingestion into GitHub Code Scanning and IDE security viewers.
+- **CSV & GitHub Issue Card Exporters**: Formatted tabular export (`crowdqa export --format csv`) for spreadsheet triage and pre-rendered GitHub issue markdown cards.
+- **Campaign Configuration Linter**: Declarative validator (`crowdqa check`) verifying URL validity, viewport coverage (including mobile requirements), reachability, and quality gate constraints.
+- **Interactive Report Server**: Built-in zero-dependency HTTP preview server (`crowdqa serve`) to locally host and inspect interactive HTML audit dashboards.
+- **Heuristic Rubric Evaluator**: Classification engine mapping findings to usability, WCAG accessibility, performance, and AI hallucination/drift categories.
+- **Test Suite Expansion**: Comprehensive unit and integration test coverage across all core modules (26 passing tests).
+
 ## [0.1.0] - 2026-11-06
 
 ### Added

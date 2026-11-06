@@ -68,10 +68,13 @@ npx crowdqa report --campaign crowdqa.campaign.json --findings-dir findings/ --o
 | Comando | Descrizione |
 |---|---|
 | `crowdqa init [nome]` | Crea lo scheletro dichiarativo `crowdqa.campaign.json` |
+| `crowdqa check --campaign <file>` | Esegue il linting e valida requisiti viewport e quality gates |
 | `crowdqa consent --tester <id> --campaign <id>` | Genera e firma l'accordo di riservatezza per il tester |
 | `crowdqa submit --file <path.json>` | Valida la segnalazione e anonimizza i dati sensibili |
 | `crowdqa cluster --findings-dir <dir>` | Raggruppa e deduplica le anomalie raccolte |
 | `crowdqa report --campaign <file> --findings-dir <dir>` | Compila i report di audit in Markdown, JSON e HTML |
+| `crowdqa export --report <file.json> --format <sarif\|csv\|issues>` | Esporta i risultati in standard SARIF 2.1.0, CSV o issue GitHub |
+| `crowdqa serve --report <path.html> [--port 3000]` | Avvia un server locale per visualizzare il report HTML interattivo |
 | `crowdqa verify --report <file>` | Verifica la firma di provenienza e i criteri di qualità |
 | `crowdqa demo` | Esegue una simulazione completa con tester e anomalie d'esempio |
 

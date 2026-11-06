@@ -93,3 +93,35 @@ test("evaluateQualityGates flags missing tester consent when required", () => {
   assert.equal(evalResult.passed, false);
   assert.ok(evalResult.reasons.some((r) => r.includes("Missing cryptographic NDA/consent proof")));
 });
+
+test("evaluateQualityGates marks CONDITIONAL status for non-blocker violations", () => {
+  const campaign = validateCampaign({
+    id: "c-cond",
+    title: "Conditional Campaign",
+    targetUrl: "https://example.com",
+    steps: [{ id: "s1", instruction: "i", expectedOutcome: "e" }],
+    gates: { maxBlockers: 1, maxCritical: 0, minTaskCompletionRate: 85, requireConsentProof: false },
+  });
+
+  const findings: FindingSubmission[] = [
+    {
+      id: "f-crit",
+      campaignId: "c-cond",
+      testerId: "t1",
+      title: "Critical layout shift",
+      type: "visual_defect",
+      severity: "critical",
+      reproducibility: "always",
+      environment: { browser: "Chrome", os: "macOS", viewport: "1920x1080" },
+      stepsToReproduce: ["step"],
+      expectedBehavior: "stable",
+      actualBehavior: "jumps",
+      createdAt: new Date().toISOString(),
+    },
+  ];
+
+  const evalResult = evaluateQualityGates(campaign, findings, []);
+  assert.equal(evalResult.passed, false);
+  assert.equal(evalResult.status, "CONDITIONAL");
+});
+

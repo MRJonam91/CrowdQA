@@ -47,3 +47,22 @@ test("sanitizeFinding flags and sanitizes sensitive fields in submission", () =>
   assert.ok(!sanitized.stepsToReproduce[1]!.includes("superSecretPassword123"));
   assert.ok(!sanitized.logExtract!.includes("1234567890abcdef123456"));
 });
+
+test("sanitizeText handles empty string and clean strings without alterations", () => {
+  assert.equal(sanitizeText("").text, "");
+  assert.equal(sanitizeText("").redactedTypes.length, 0);
+
+  const clean = "User clicks on the green button successfully.";
+  const res = sanitizeText(clean);
+  assert.equal(res.text, clean);
+  assert.equal(res.redactedTypes.length, 0);
+});
+
+test("sanitizeText detects credit card numbers", () => {
+  const ccString = "Transaction with card 4111-2222-3333-4444 failed to settle";
+  const res = sanitizeText(ccString);
+  assert.ok(!res.text.includes("4111-2222-3333-4444"));
+  assert.ok(res.text.includes("[REDACTED_CREDIT_CARD]"));
+  assert.ok(res.redactedTypes.includes("credit_card"));
+});
+

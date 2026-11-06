@@ -161,3 +161,16 @@ export interface AuditReport {
   clusters: DeduplicatedCluster[];
   findings: SanitizedFinding[];
 }
+
+export interface LintIssue {
+  level: "error" | "warning";
+  field: string;
+  message: string;
+}
+
+export interface HeuristicBreakdown {
+  category: HeuristicCategory;
+  count: number;
+  severities: Record<FindingSeverity, number>;
+}
+

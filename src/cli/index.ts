@@ -2,14 +2,17 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // Copyright (C) 2026 Manoj Rollo (MRJonam91)
 
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { createServer } from "node:http";
+import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { validateCampaign } from "../core/campaign.ts";
 import { createTesterConsent, verifyTesterConsent } from "../core/consent.ts";
+import { exportToCsv, exportToGitHubMarkdownIssues, exportToSarif } from "../core/exporters.ts";
 import { clusterFindings, validateFindingSubmission } from "../core/findings.ts";
+import { lintCampaign } from "../core/linter.ts";
 import { generateAuditReport, renderHtmlReport, renderMarkdownReport } from "../core/report.ts";
 import { sanitizeFinding } from "../core/sanitizer.ts";
-import type { CampaignConfig, FindingSubmission, SanitizedFinding, TesterConsent } from "../core/types.ts";
+import type { AuditReport, CampaignConfig, FindingSubmission, SanitizedFinding, TesterConsent } from "../core/types.ts";
 
 const SPONSOR_LINE = "⭐ Support CrowdQA maintenance: https://github.com/sponsors/MRJonam91";
 
@@ -22,15 +25,20 @@ function printSponsorIfNeeded(): void {
 
 function printHelp(): void {
   console.log(`
-CrowdQA — Structured Human QA & Crowd Testing Engine
+CrowdQA v0.2.0-alpha — Structured Human QA & Crowd Testing Engine
 
 Usage:
   crowdqa init [campaign-name]                 Initialize a new QA mission configuration
+  crowdqa check --campaign <file>              Lint and validate campaign configuration
   crowdqa consent --tester <id> --campaign <id> Generate and cryptographically sign tester NDA
   crowdqa submit --file <path-to-finding.json> Ingest and sanitize finding with PII scrub
   crowdqa cluster --findings-dir <dir>          Cluster and deduplicate submissions
   crowdqa report --campaign <file> --findings-dir <dir> [--out-dir <dir>]
                                                Synthesize findings into MD, JSON & HTML report
+  crowdqa export --report <file.json> --format <sarif|csv|issues> [--out <file>]
+                                               Export report to SARIF 2.1.0, CSV, or GitHub Issues
+  crowdqa serve --report <path.html> [--port <3000>]
+                                               Host local interactive report preview server
   crowdqa verify --report <file>               Verify cryptographic integrity of audit report
   crowdqa demo                                 Run instant end-to-end simulated crowd test
 
@@ -119,6 +127,36 @@ function handleInit(args: string[]): void {
 
   writeFileSync(filename, JSON.stringify(template, null, 2), "utf8");
   console.log(`✅ Scaffolded new CrowdQA campaign configuration: ${filename}`);
+}
+
+function handleCheck(options: Record<string, string>): void {
+  const campaignFile = options.campaign || "crowdqa.campaign.json";
+  if (!existsSync(campaignFile)) {
+    console.error(`❌ Error: Campaign file '${campaignFile}' not found.`);
+    process.exit(1);
+  }
+
+  const raw = JSON.parse(readFileSync(campaignFile, "utf8"));
+  const campaign = validateCampaign(raw);
+  const issues = lintCampaign(campaign);
+
+  if (issues.length === 0) {
+    console.log(`✅ Campaign '${campaign.id}' passed all linting checks with zero issues!`);
+    return;
+  }
+
+  const errors = issues.filter((i) => i.level === "error");
+  const warnings = issues.filter((i) => i.level === "warning");
+
+  console.log(`📋 Campaign Lint Results (${errors.length} error(s), ${warnings.length} warning(s)):`);
+  for (const issue of issues) {
+    const icon = issue.level === "error" ? "❌" : "⚠️";
+    console.log(`   ${icon} [${issue.field}] ${issue.message}`);
+  }
+
+  if (errors.length > 0) {
+    process.exit(1);
+  }
 }
 
 function handleConsent(options: Record<string, string>): void {
@@ -234,6 +272,81 @@ function handleReport(options: Record<string, string>): void {
   console.log(`   Markdown : ${mdPath}`);
   console.log(`   JSON     : ${jsonPath}`);
   console.log(`   HTML     : ${htmlPath}`);
+
+  if (options.strict === "true" && report.metrics.gateEvaluation.status === "FAILED") {
+    process.exit(1);
+  }
+}
+
+function handleExport(options: Record<string, string>): void {
+  const reportFile = options.report;
+  const format = options.format || "sarif";
+
+  if (!reportFile || !existsSync(reportFile)) {
+    console.error("❌ Error: Please specify existing report JSON via --report <file.json>");
+    process.exit(1);
+  }
+
+  const report: AuditReport = JSON.parse(readFileSync(reportFile, "utf8"));
+  let outputContent = "";
+  let defaultExt = ".json";
+
+  switch (format.toLowerCase()) {
+    case "sarif":
+      outputContent = JSON.stringify(exportToSarif(report), null, 2);
+      defaultExt = ".sarif";
+      break;
+    case "csv":
+      outputContent = exportToCsv(report);
+      defaultExt = ".csv";
+      break;
+    case "issues":
+    case "markdown":
+      outputContent = exportToGitHubMarkdownIssues(report);
+      defaultExt = ".issues.md";
+      break;
+    default:
+      console.error(`❌ Error: Unknown export format '${format}'. Supported: sarif, csv, issues`);
+      process.exit(1);
+  }
+
+  const outFile = options.out || `export-${report.campaignId}${defaultExt}`;
+  const dir = resolve(outFile, "..");
+  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+  writeFileSync(outFile, outputContent, "utf8");
+
+  console.log(`✅ Exported report '${report.id}' to format [${format.toUpperCase()}]: ${outFile}`);
+}
+
+function handleServe(options: Record<string, string>): void {
+  let targetPath = options.report || "reports";
+  if (!existsSync(targetPath)) {
+    console.error(`❌ Error: Path '${targetPath}' does not exist.`);
+    process.exit(1);
+  }
+
+  if (statSync(targetPath).isDirectory()) {
+    const htmlFiles = readdirSync(targetPath).filter((f) => f.endsWith(".html"));
+    if (htmlFiles.length === 0) {
+      console.error(`❌ Error: No .html reports found in '${targetPath}'`);
+      process.exit(1);
+    }
+    targetPath = join(targetPath, htmlFiles[0]!);
+  }
+
+  const port = parseInt(options.port || "3000", 10);
+  const htmlContent = readFileSync(targetPath, "utf8");
+
+  const server = createServer((_req, res) => {
+    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+    res.end(htmlContent);
+  });
+
+  server.listen(port, () => {
+    console.log(`📡 CrowdQA Report Server live at http://localhost:${port}`);
+    console.log(`   Serving: ${targetPath}`);
+    console.log(`   Press Ctrl+C to stop.`);
+  });
 }
 
 function handleVerify(options: Record<string, string>): void {
@@ -362,7 +475,7 @@ async function main(): Promise<void> {
   }
 
   if (args.includes("-v") || args.includes("--version")) {
-    console.log("crowdqa v0.1.0");
+    console.log("crowdqa v0.2.0-alpha");
     return;
   }
 
@@ -371,6 +484,9 @@ async function main(): Promise<void> {
   switch (command) {
     case "init":
       handleInit(args);
+      break;
+    case "check":
+      handleCheck(options);
       break;
     case "consent":
       handleConsent(options);
@@ -383,6 +499,12 @@ async function main(): Promise<void> {
       break;
     case "report":
       handleReport(options);
+      break;
+    case "export":
+      handleExport(options);
+      break;
+    case "serve":
+      handleServe(options);
       break;
     case "verify":
       handleVerify(options);

@@ -68,3 +68,77 @@ test("clusterFindings deduplicates similar findings and escalates severity", () 
   assert.equal(clusters[0]!.testersInvolved.length, 2);
   assert.equal(clusters[0]!.affectedDevices.length, 2);
 });
+
+test("clusterFindings keeps distinct issues in separate clusters", () => {
+  const f1: FindingSubmission = {
+    id: "f-101",
+    campaignId: "c-1",
+    testerId: "tester-1",
+    stepId: "step-1",
+    title: "Login button displays wrong font",
+    type: "visual_defect",
+    severity: "minor",
+    reproducibility: "always",
+    environment: { browser: "Chrome", os: "Windows", viewport: "1920x1080" },
+    stepsToReproduce: ["view page"],
+    expectedBehavior: "Roboto",
+    actualBehavior: "Times New Roman",
+    createdAt: new Date().toISOString(),
+  };
+
+  const f2: FindingSubmission = {
+    id: "f-102",
+    campaignId: "c-1",
+    testerId: "tester-2",
+    stepId: "step-3",
+    title: "SQL database timeout during checkout processing",
+    type: "functional_bug",
+    severity: "blocker",
+    reproducibility: "always",
+    environment: { browser: "Firefox", os: "Linux", viewport: "1920x1080" },
+    stepsToReproduce: ["submit order"],
+    expectedBehavior: "order placed",
+    actualBehavior: "timeout 504",
+    createdAt: new Date().toISOString(),
+  };
+
+  const clusters = clusterFindings([sanitizeFinding(f1), sanitizeFinding(f2)]);
+  assert.equal(clusters.length, 2);
+  assert.equal(clusters[0]!.severity, "blocker");
+  assert.equal(clusters[1]!.severity, "minor");
+});
+
+test("validateFindingSubmission rejects invalid types and severities", () => {
+  assert.throws(
+    () =>
+      validateFindingSubmission({
+        id: "f",
+        campaignId: "c",
+        testerId: "t",
+        title: "T",
+        type: "unknown_weird_type",
+        severity: "major",
+        stepsToReproduce: ["s"],
+        expectedBehavior: "e",
+        actualBehavior: "a",
+      }),
+    /Invalid finding type/
+  );
+
+  assert.throws(
+    () =>
+      validateFindingSubmission({
+        id: "f",
+        campaignId: "c",
+        testerId: "t",
+        title: "T",
+        type: "functional_bug",
+        severity: "nuclear_danger",
+        stepsToReproduce: ["s"],
+        expectedBehavior: "e",
+        actualBehavior: "a",
+      }),
+    /Invalid finding severity/
+  );
+});
+
