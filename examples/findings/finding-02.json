@@ -1,0 +1,24 @@
+{
+  "id": "f-checkout-02",
+  "campaignId": "campaign-ecommerce-checkout",
+  "testerId": "tester-marco",
+  "stepId": "step-2",
+  "title": "Coupon code input hangs with infinite loader on Android",
+  "type": "functional_bug",
+  "severity": "major",
+  "reproducibility": "always",
+  "environment": {
+    "browser": "Chrome Mobile 130",
+    "os": "Android 15",
+    "viewport": "360x780",
+    "networkCondition": "WiFi"
+  },
+  "stepsToReproduce": [
+    "Open checkout URL",
+    "Enter promo code 'WELCOME10'",
+    "Tap Apply button"
+  ],
+  "expectedBehavior": "Applied coupon badge with discount amount deducted",
+  "actualBehavior": "Infinite spinning wheel on submit button, UI freezes",
+  "createdAt": "2026-11-06T14:22:00.000Z"
+}

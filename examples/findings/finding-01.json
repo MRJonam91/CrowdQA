@@ -1,0 +1,27 @@
+{
+  "id": "f-checkout-01",
+  "campaignId": "campaign-ecommerce-checkout",
+  "testerId": "tester-alicia",
+  "stepId": "step-2",
+  "title": "Coupon code input hangs with infinite loader on mobile viewport",
+  "type": "functional_bug",
+  "severity": "major",
+  "reproducibility": "always",
+  "environment": {
+    "browser": "Mobile Safari 18",
+    "os": "iOS 18.1",
+    "viewport": "390x844",
+    "networkCondition": "4G LTE"
+  },
+  "stepsToReproduce": [
+    "Navigate to /checkout on iPhone 15 emulation (390px)",
+    "Scroll to coupon accordion and tap to expand",
+    "Type coupon 'WELCOME10'",
+    "Tap 'Apply' CTA"
+  ],
+  "expectedBehavior": "Discount calculated and displayed in order summary within 800ms",
+  "actualBehavior": "Button enters permanent spinning state without response or error alert",
+  "logExtract": "POST /api/v1/coupons returned 422 Unprocessable Entity - auth_token=Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.doNotLeakThis",
+  "notes": "Verified on portrait mode. User email test_shopper@example.com was tested.",
+  "createdAt": "2026-11-06T14:15:00.000Z"
+}

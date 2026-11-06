@@ -1,0 +1,50 @@
+{
+  "id": "campaign-ecommerce-checkout",
+  "title": "E-Commerce Checkout & Payment Flow QA",
+  "targetUrl": "https://demo-shop.example.com/checkout",
+  "version": "1.0.0",
+  "description": "Multi-device crowd test mission verifying mobile viewport responsiveness, coupon validation resilience, and checkout completion.",
+  "viewports": [
+    { "name": "Desktop 1080p", "width": 1920, "height": 1080, "deviceType": "desktop" },
+    { "name": "Mobile Safari", "width": 390, "height": 844, "deviceType": "mobile" },
+    { "name": "Android Mobile", "width": 360, "height": 780, "deviceType": "mobile" }
+  ],
+  "personas": [
+    { "id": "p-shopper", "label": "Casual online shopper", "technicalLevel": "novice", "locale": "en-US" },
+    { "id": "p-international", "label": "International European customer", "technicalLevel": "intermediate", "locale": "it-IT" }
+  ],
+  "steps": [
+    {
+      "id": "step-1",
+      "stepNumber": 1,
+      "title": "Cart Review",
+      "instruction": "Open checkout from cart and verify item quantities",
+      "expectedOutcome": "Cart items rendered with clear subtotals"
+    },
+    {
+      "id": "step-2",
+      "stepNumber": 2,
+      "title": "Apply Coupon",
+      "instruction": "Enter discount code 'WELCOME10' and click Apply",
+      "expectedOutcome": "Subtotal updates with 10% discount and success toast appears"
+    },
+    {
+      "id": "step-3",
+      "stepNumber": 3,
+      "title": "Billing & Payment",
+      "instruction": "Fill billing address and select credit card payment",
+      "expectedOutcome": "Form validates postal code and payment fields render without layout shift"
+    }
+  ],
+  "heuristics": [
+    { "id": "h-responsive", "category": "ux", "prompt": "Does the sticky bottom checkout bar obscure inputs on mobile?" },
+    { "id": "h-a11y", "category": "accessibility", "prompt": "Can form errors be announced or focused via screen reader?" }
+  ],
+  "gates": {
+    "maxBlockers": 0,
+    "maxCritical": 1,
+    "minTaskCompletionRate: 85": 85,
+    "requireConsentProof": true
+  },
+  "createdAt": "2026-11-06T12:00:00.000Z"
+}

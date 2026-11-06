@@ -1,0 +1,8 @@
+{
+  "testerId": "tester-marco",
+  "campaignId": "campaign-ecommerce-checkout",
+  "signedAt": "2026-11-06T16:12:08.293Z",
+  "termsVersion": "2026-v1.0",
+  "agreementText": "CROWDQA TESTER INFORMED CONSENT & NON-DISCLOSURE AGREEMENT\nTerms Version: 2026-v1.0\nTester Identifier: tester-marco\nCampaign Identifier: campaign-ecommerce-checkout\nScope:\n1. Confidentiality: The tester agrees not to disclose, screenshot for public sharing, or publish any unreleased feature, UI layout, bug, or security vulnerability encountered during this test mission.\n2. Evidence Redaction: The tester agrees not to submit real personal credentials, personal identity numbers, financial card numbers, or third-party private data in recorded logs.\n3. Anonymized Synthesis: The tester grants permission to synthesize anonymized bug observations, reproduction steps, and system logs into the final campaign audit report.\n4. Independent Audit: The tester confirms all recorded findings reflect genuine human interactions under authorized testing parameters.",
+  "signatureHash": "561009a7708f59faba85c2a515d7cd3712a0f8805fbdc0aea4b67f33c2a2a53b"
+}

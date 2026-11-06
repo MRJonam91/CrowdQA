@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 850 480" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0d1117" />
+      <stop offset="100%" stop-color="#161b22" />
+    </linearGradient>
+  </defs>
+  <rect width="850" height="480" rx="10" fill="url(#bg)" />
+  <!-- Window Controls -->
+  <circle cx="28" cy="24" r="6" fill="#ff5f56" />
+  <circle cx="48" cy="24" r="6" fill="#ffbd2e" />
+  <circle cx="68" cy="24" r="6" fill="#27c93f" />
+  <text x="425" y="28" fill="#8b949e" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, monospace" font-size="13" text-anchor="middle" font-weight="bold">crowdqa — bash (80x24)</text>
+
+  <!-- Content -->
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="13" fill="#e6edf3">
+    <text x="32" y="70" fill="#7ee787">$ npx crowdqa demo</text>
+    <text x="32" y="96" fill="#58a6ff">🚀 Running CrowdQA End-to-End Simulation Demo...</text>
+    
+    <text x="32" y="126" fill="#e6edf3">📋 Campaign: Pilot E-Commerce Checkout Flow</text>
+    <text x="32" y="148" fill="#3fb950">🛡️ Automated PII Redactions Applied:</text>
+    <text x="32" y="170" fill="#8b949e">   - f-001: sanitized logExtract [REDACTED_JWT]</text>
+    <text x="32" y="192" fill="#8b949e">   - f-002: sanitized notes [REDACTED_SECRET, REDACTED_EMAIL]</text>
+
+    <text x="32" y="224" fill="#d29922">📊 Synthesis Results:</text>
+    <text x="32" y="246" fill="#e6edf3">   • Participating Testers : 2 human testers</text>
+    <text x="32" y="268" fill="#e6edf3">   • Deduplicated Clusters : 2 (1 major, 1 minor)</text>
+    <text x="32" y="290" fill="#e6edf3">   • Task Completion Rate  : 100%</text>
+    <text x="32" y="312" fill="#e6edf3">   • UX Friction Score     : 25 / 100</text>
+    <text x="32" y="334" fill="#3fb950">   • Quality Gate Status   : PASSED</text>
+
+    <text x="32" y="370" fill="#7ee787">$ npx crowdqa report --campaign campaign.json --findings-dir findings/ --out-dir reports/</text>
+    <text x="32" y="394" fill="#58a6ff">🎉 CrowdQA Audit Report successfully generated!</text>
+    <text x="32" y="416" fill="#8b949e">   • Markdown : reports/audit-report.md</text>
+    <text x="32" y="438" fill="#8b949e">   • Standalone HTML: reports/audit-report.html (Interactive Dashboard)</text>
+  </g>
+</svg>

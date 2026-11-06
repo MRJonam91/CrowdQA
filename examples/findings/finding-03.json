@@ -1,0 +1,24 @@
+{
+  "id": "f-checkout-03",
+  "campaignId": "campaign-ecommerce-checkout",
+  "testerId": "tester-alicia",
+  "stepId": "step-3",
+  "title": "Sticky bottom checkout CTA overlaps credit card expiry selector",
+  "type": "ux_friction",
+  "severity": "minor",
+  "reproducibility": "always",
+  "environment": {
+    "browser": "Mobile Safari 18",
+    "os": "iOS 18.1",
+    "viewport": "390x844",
+    "networkCondition": "4G LTE"
+  },
+  "stepsToReproduce": [
+    "Navigate to Step 3 payment fields",
+    "Scroll down to Expiry Month dropdown",
+    "Focus on month selector"
+  ],
+  "expectedBehavior": "Dropdown options clearly visible above sticky bottom CTA bar",
+  "actualBehavior": "Sticky bar covers lower half of month options, forcing awkward double scrolling",
+  "createdAt": "2026-11-06T14:35:00.000Z"
+}
