@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0-beta] - 2026-11-06
+
+### Added
+- **JUnit XML Test Results Exporter**: Export audit reports to standard JUnit XML (`crowdqa export --format junit`) for native defect tracking in CI test views (GitHub Actions, GitLab CI, Jenkins, Azure DevOps).
+- **CrowdScore™ & Defect Density Benchmark**: Proprietary weighted scoring algorithm computing a 0–100 benchmark score, letter grade (`A+` to `F`), Defect Density Index (DDI), and inter-tester agreement rate.
+- **Interactive HTML Dashboard Enhancements**: Integrated client-side real-time keyword search, active severity filter tabs with live counters, and card tags with zero CDN dependencies.
+- **Batch Findings Submission**: Ingest and sanitize entire directories of findings in one operation via `crowdqa submit --dir <folder>`.
+- **Quality Gate Overrides & CI Enforcement**: Configurable CLI flags (`--max-blockers <N>`, `--max-critical <N>`, `--min-tcr <N>`, `--fail-on-violation`) for automated deployment blocking.
+- **Test Suite Expansion**: Added hermetic CI test isolation, JUnit XML validation, score benchmarks, and reach 35 passing tests.
+
 ## [0.2.0-alpha] - 2026-11-06
 
 ### Added

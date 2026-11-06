@@ -128,3 +128,38 @@ ${c.representativeFinding.logExtract ? `\`\`\`text\n${c.representativeFinding.lo
     )
     .join("\n---\n\n");
 }
+
+function escapeXml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
+export function exportToJunitXml(report: AuditReport): string {
+  const total = report.clusters.length;
+  const failures = report.clusters.filter((c) => ["blocker", "critical"].includes(c.severity)).length;
+
+  const cases = report.clusters.map((c) => {
+    const isFailure = ["blocker", "critical"].includes(c.severity);
+    const failureTag = isFailure
+      ? `\n      <failure message="${escapeXml(c.representativeFinding.actualBehavior)}" type="${c.severity.toUpperCase()}">${escapeXml(
+          `Expected: ${c.representativeFinding.expectedBehavior}\nActual: ${c.representativeFinding.actualBehavior}\nDevices: ${c.affectedDevices.join(
+            ", "
+          )}`
+        )}</failure>`
+      : "";
+
+    return `    <testcase classname="crowdqa.${escapeXml(c.type)}" name="${escapeXml(c.title)}" time="0.1">${failureTag}\n    </testcase>`;
+  });
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="CrowdQA Audit" tests="${total}" failures="${failures}" errors="0" time="1.0">
+  <testsuite name="${escapeXml(report.campaignTitle)}" tests="${total}" failures="${failures}" errors="0" timestamp="${report.generatedAt}">
+${cases.join("\n")}
+  </testsuite>
+</testsuites>`;
+}
+

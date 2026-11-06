@@ -3,7 +3,7 @@
 
 import test from "node:test";
 import assert from "node:assert/strict";
-import { exportToCsv, exportToGitHubMarkdownIssues, exportToSarif } from "../src/core/exporters.ts";
+import { exportToCsv, exportToGitHubMarkdownIssues, exportToJunitXml, exportToSarif } from "../src/core/exporters.ts";
 import { generateAuditReport } from "../src/core/report.ts";
 import { validateCampaign } from "../src/core/campaign.ts";
 import { sanitizeFinding } from "../src/core/sanitizer.ts";
@@ -66,3 +66,29 @@ test("exportToGitHubMarkdownIssues produces formatted markdown issue cards", () 
   assert.ok(issues.includes("#### Expected Behavior"));
   assert.ok(issues.includes("#### Actual Behavior"));
 });
+
+test("exportToJunitXml produces valid JUnit XML with failures", () => {
+  const report = createSampleReport();
+  const xml = exportToJunitXml(report);
+
+  assert.ok(xml.includes('<?xml version="1.0" encoding="UTF-8"?>'));
+  assert.ok(xml.includes('<testsuites name="CrowdQA Audit" tests="1" failures="1"'));
+  assert.ok(xml.includes('<testcase classname="crowdqa.functional_bug" name="Checkout button fails with 500 error"'));
+  assert.ok(xml.includes('<failure message="server returns 500" type="CRITICAL">'));
+});
+
+test("exportToJunitXml with zero defects outputs zero failures", () => {
+  const campaign = validateCampaign({
+    id: "camp-clean",
+    title: "Clean Campaign",
+    targetUrl: "https://example.com",
+    steps: [{ id: "s-1", instruction: "Do A", expectedOutcome: "A done" }],
+  });
+  const report = generateAuditReport(campaign, [], []);
+  const xml = exportToJunitXml(report);
+
+  assert.ok(xml.includes('tests="0" failures="0"'));
+  assert.ok(!xml.includes('<failure'));
+});
+
+

@@ -66,3 +66,13 @@ test("sanitizeText detects credit card numbers", () => {
   assert.ok(res.redactedTypes.includes("credit_card"));
 });
 
+test("sanitizeText scrubs mixed lowercase bearer tokens and ghp GitHub tokens", () => {
+  const mixed = "Authorization: bearer 9876543210abcdef9876 and token ghp_12345678901234567890";
+  const res = sanitizeText(mixed);
+  assert.ok(!res.text.includes("9876543210abcdef9876"));
+  assert.ok(!res.text.includes("ghp_12345678901234567890"));
+  assert.ok(res.text.includes("Bearer [REDACTED_TOKEN]"));
+  assert.ok(res.text.includes("[REDACTED_API_KEY]"));
+});
+
+

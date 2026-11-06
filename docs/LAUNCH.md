@@ -1,6 +1,6 @@
-# Launch Checklist — CrowdQA v0.2.0-alpha
+# Launch Checklist — CrowdQA v0.3.0-beta
 
-Formal pre-publication verification checklist for CrowdQA Alpha release.
+Formal pre-publication verification checklist for CrowdQA Beta release.
 
 ## Quality & Governance Checklist
 
@@ -10,11 +10,14 @@ Formal pre-publication verification checklist for CrowdQA Alpha release.
 - [x] Attribution and rights breakdown in `LICENSING.md`
 - [x] Funding and donation channels configured in `.github/FUNDING.yml` and READMEs
 - [x] GitHub Actions CI workflow passing with core size guard (< 1,500 non-empty LOC)
-- [x] 100% test pass rate across Node.js 22 and 24 (26 passing tests)
+- [x] 100% test pass rate across Node.js 22 and 24 (35 passing tests)
 - [x] Anti-plagiarism markers registered in `_provenance/CrowdQA.json`
 - [x] Zero external runtime dependencies
-- [x] SARIF 2.1.0, CSV, and GitHub issue card export engine
+- [x] SARIF 2.1.0, JUnit XML, CSV, and GitHub issue card export engine
+- [x] CrowdScore™ benchmark rating algorithm (Grade A+ to F) and Defect Density Index
 - [x] Built-in local HTTP server for interactive HTML report preview
+- [x] Interactive HTML dashboard with live keyword search and severity filter tabs
+- [x] Batch findings ingestion (`crowdqa submit --dir ...`)
 - [x] Campaign configuration linter and heuristic categorization
 - [x] Bilingual READMEs (Italian / English) with terminal SVG demo
 - [x] Zero-leak automated PII sanitization enabled by default

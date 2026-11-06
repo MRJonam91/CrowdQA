@@ -21,7 +21,9 @@
   ],
   "expectedBehavior": "Discount calculated and displayed in order summary within 800ms",
   "actualBehavior": "Button enters permanent spinning state without response or error alert",
-  "logExtract": "POST /api/v1/coupons returned 422 Unprocessable Entity - auth_token=Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.doNotLeakThis",
-  "notes": "Verified on portrait mode. User email test_shopper@example.com was tested.",
-  "createdAt": "2026-11-06T14:15:00.000Z"
+  "logExtract": "POST /api/v1/coupons returned 422 Unprocessable Entity - auth_token=Bearer [REDACTED_JWT]",
+  "notes": "Verified on portrait mode. User email [REDACTED_EMAIL] was tested.",
+  "createdAt": "2026-11-06T14:15:00.000Z",
+  "sanitized": true,
+  "redactedFields": []
 }

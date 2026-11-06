@@ -7,7 +7,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSy
 import { join, resolve } from "node:path";
 import { validateCampaign } from "../core/campaign.ts";
 import { createTesterConsent, verifyTesterConsent } from "../core/consent.ts";
-import { exportToCsv, exportToGitHubMarkdownIssues, exportToSarif } from "../core/exporters.ts";
+import { exportToCsv, exportToGitHubMarkdownIssues, exportToJunitXml, exportToSarif } from "../core/exporters.ts";
 import { clusterFindings, validateFindingSubmission } from "../core/findings.ts";
 import { lintCampaign } from "../core/linter.ts";
 import { generateAuditReport, renderHtmlReport, renderMarkdownReport } from "../core/report.ts";
@@ -174,9 +174,33 @@ function handleConsent(options: Record<string, string>): void {
 }
 
 function handleSubmit(options: Record<string, string>): void {
+  if (options.dir) {
+    const dir = options.dir;
+    if (!existsSync(dir)) {
+      console.error(`❌ Error: Directory '${dir}' does not exist.`);
+      process.exit(1);
+    }
+    const files = readdirSync(dir).filter((f) => f.endsWith(".json") && !f.startsWith("consent-"));
+    let ingested = 0;
+    for (const f of files) {
+      const p = join(dir, f);
+      try {
+        const raw = JSON.parse(readFileSync(p, "utf8"));
+        const val = validateFindingSubmission(raw);
+        const san = sanitizeFinding(val);
+        writeFileSync(p, JSON.stringify(san, null, 2), "utf8");
+        ingested++;
+      } catch (err) {
+        console.warn(`⚠️ Skipped ${f}: ${(err as Error).message}`);
+      }
+    }
+    console.log(`✅ Batch ingested and sanitized ${ingested} finding(s) in '${dir}'`);
+    return;
+  }
+
   const file = options.file;
   if (!file || !existsSync(file)) {
-    console.error("❌ Error: Please provide an existing finding JSON via --file <path>");
+    console.error("❌ Error: Please provide an existing finding JSON via --file <path> or --dir <folder>");
     process.exit(1);
   }
 
@@ -238,6 +262,12 @@ function handleReport(options: Record<string, string>): void {
   }
 
   const campaign = validateCampaign(JSON.parse(readFileSync(campaignFile, "utf8")));
+
+  // Apply CLI overrides to campaign gates if specified
+  if (options["max-blockers"]) campaign.gates.maxBlockers = parseInt(options["max-blockers"], 10);
+  if (options["max-critical"]) campaign.gates.maxCritical = parseInt(options["max-critical"], 10);
+  if (options["min-tcr"]) campaign.gates.minTaskCompletionRate = parseInt(options["min-tcr"], 10);
+
   const files = readdirSync(findingsDir).filter((f) => f.endsWith(".json"));
   const findings: SanitizedFinding[] = [];
   const consents: TesterConsent[] = [];
@@ -296,6 +326,11 @@ function handleExport(options: Record<string, string>): void {
       outputContent = JSON.stringify(exportToSarif(report), null, 2);
       defaultExt = ".sarif";
       break;
+    case "junit":
+    case "xml":
+      outputContent = exportToJunitXml(report);
+      defaultExt = ".junit.xml";
+      break;
     case "csv":
       outputContent = exportToCsv(report);
       defaultExt = ".csv";
@@ -306,7 +341,7 @@ function handleExport(options: Record<string, string>): void {
       defaultExt = ".issues.md";
       break;
     default:
-      console.error(`❌ Error: Unknown export format '${format}'. Supported: sarif, csv, issues`);
+      console.error(`❌ Error: Unknown export format '${format}'. Supported: sarif, junit, csv, issues`);
       process.exit(1);
   }
 

@@ -57,3 +57,42 @@ test("generateAuditReport produces metrics, markdown, and html outputs", () => {
   assert.ok(html.includes("CrowdQA Audit Report"));
   assert.ok(html.includes("FAILED"));
 });
+
+test("computeAuditMetrics calculates CrowdScore, Grade and Defect Density accurately", () => {
+  const campaign = validateCampaign({
+    id: "camp-score",
+    title: "Score Campaign",
+    targetUrl: "https://example.com",
+    steps: [
+      { id: "s-1", instruction: "1", expectedOutcome: "1" },
+      { id: "s-2", instruction: "2", expectedOutcome: "2" },
+    ],
+  });
+
+  const findings: FindingSubmission[] = [
+    {
+      id: "f-minor",
+      campaignId: campaign.id,
+      testerId: "t-1",
+      stepId: "s-1",
+      title: "Minor text misalignment",
+      type: "visual_defect",
+      severity: "minor",
+      reproducibility: "always",
+      environment: { browser: "Chrome", os: "macOS", viewport: "1920x1080" },
+      stepsToReproduce: ["view"],
+      expectedBehavior: "aligned",
+      actualBehavior: "offset 2px",
+      createdAt: new Date().toISOString(),
+    },
+  ];
+
+  const report = generateAuditReport(campaign, [sanitizeFinding(findings[0]!)], []);
+  assert.equal(report.metrics.blockersCount, 0);
+  assert.equal(report.metrics.criticalCount, 0);
+  assert.equal(report.metrics.minorCount, 1);
+  assert.equal(report.metrics.crowdScore, 98);
+  assert.equal(report.metrics.grade, "A+");
+  assert.equal(report.metrics.defectDensityIndex, 0.5);
+});
+

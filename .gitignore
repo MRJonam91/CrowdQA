@@ -7,3 +7,6 @@ coverage/
 .turbo/
 .cache/
 reports/
+test-reports/
+*.sarif
+*.csv

@@ -63,6 +63,22 @@ export function computeAuditMetrics(
   }
   const frictionScore = Math.min(100, Math.round(weightedFriction * 2.5));
 
+  // Compute Benchmark CrowdScore (0-100) & Grade
+  let score = 100;
+  score -= severityDistribution.blocker * 35;
+  score -= severityDistribution.critical * 18;
+  score -= severityDistribution.major * 8;
+  score -= severityDistribution.minor * 2;
+  score -= severityDistribution.suggestion * 0.5;
+  const crowdScore = Math.max(0, Math.min(100, Math.round(score)));
+
+  const grade: "A+" | "A" | "B" | "C" | "D" | "F" =
+    crowdScore >= 95 ? "A+" : crowdScore >= 88 ? "A" : crowdScore >= 78 ? "B" : crowdScore >= 68 ? "C" : crowdScore >= 55 ? "D" : "F";
+
+  const defectDensityIndex = Math.round((clusters.length / totalSteps) * 100) / 100;
+  const sharedClusters = clusters.filter((c) => c.testersInvolved.length > 1).length;
+  const interTesterAgreement = clusters.length > 0 ? Math.round((sharedClusters / clusters.length) * 100) : 100;
+
   return {
     totalTesters: testers.size,
     totalSubmissions: findings.length,
@@ -74,6 +90,10 @@ export function computeAuditMetrics(
     suggestionsCount: severityDistribution.suggestion,
     taskCompletionRate,
     frictionScore,
+    crowdScore,
+    grade,
+    defectDensityIndex,
+    interTesterAgreement,
     severityDistribution,
     typeDistribution,
     gateEvaluation,
@@ -125,6 +145,9 @@ export function renderMarkdownReport(report: AuditReport): string {
 | Metric | Result | Description |
 |---|---|---|
 | **Gate Status** | **${m.gateEvaluation.status}** | ${m.gateEvaluation.reasons.join("; ")} |
+| **CrowdScore™ Rating** | **Grade ${m.grade}** (${m.crowdScore} / 100) | Benchmark quality & resilience score |
+| **Defect Density Index (DDI)** | **${m.defectDensityIndex}** defects/step | Defect distribution across test steps |
+| **Inter-Tester Agreement** | **${m.interTesterAgreement}%** | Concordance across distinct testers |
 | **Participating Testers** | **${m.totalTesters}** | Independent human test contributors |
 | **Total Findings Ingested** | **${m.totalSubmissions}** | Validated submissions with PII redaction |
 | **Deduplicated Defect Clusters** | **${m.uniqueClusters}** | Consolidated problem clusters |
@@ -220,9 +243,58 @@ export function renderHtmlReport(report: AuditReport): string {
       color: ${statusColor};
       background: rgba(255, 255, 255, 0.04);
     }
+    .score-badge {
+      display: inline-block;
+      padding: 0.4rem 0.8rem;
+      border-radius: 8px;
+      font-weight: 800;
+      font-size: 0.9rem;
+      background: #6366f1;
+      color: #fff;
+      margin-left: 0.5rem;
+    }
+    .controls-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      align-items: center;
+    }
+    .filter-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .filter-btn {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      color: var(--text-muted);
+      padding: 0.4rem 0.85rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: all 0.15s ease;
+    }
+    .filter-btn:hover, .filter-btn.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+    .search-input {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      color: #fff;
+      padding: 0.45rem 0.85rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      min-width: 260px;
+    }
+    .search-input:focus { outline: none; border-color: var(--primary); }
     .kpi-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
       gap: 1rem;
       margin-bottom: 2rem;
     }
@@ -299,6 +371,10 @@ export function renderHtmlReport(report: AuditReport): string {
 
     <div class="kpi-grid">
       <div class="kpi-card">
+        <div class="kpi-value" style="color: #818cf8;">${m.grade}</div>
+        <div class="kpi-label">CrowdScore™ (${m.crowdScore}/100)</div>
+      </div>
+      <div class="kpi-card">
         <div class="kpi-value">${m.totalTesters}</div>
         <div class="kpi-label">Human Testers</div>
       </div>
@@ -359,9 +435,20 @@ export function renderHtmlReport(report: AuditReport): string {
 
     <div class="panel">
       <h2>Synthesized Finding Clusters (${report.clusters.length})</h2>
-      <div class="cluster-list">
+      <div class="controls-row">
+        <div class="filter-group">
+          <button class="filter-btn active" onclick="filterSeverity('all')">All (${report.clusters.length})</button>
+          <button class="filter-btn" onclick="filterSeverity('blocker')">Blockers (${m.blockersCount})</button>
+          <button class="filter-btn" onclick="filterSeverity('critical')">Critical (${m.criticalCount})</button>
+          <button class="filter-btn" onclick="filterSeverity('major')">Major (${m.majorCount})</button>
+          <button class="filter-btn" onclick="filterSeverity('minor')">Minor (${m.minorCount})</button>
+        </div>
+        <input type="search" class="search-input" id="defect-search" placeholder="Search title, device, tester..." oninput="applySearch()" />
+      </div>
+
+      <div class="cluster-list" id="cluster-container">
         ${report.clusters.map((c) => `
-          <div class="cluster-card ${c.severity}">
+          <div class="cluster-card ${c.severity}" data-severity="${c.severity}" data-search="${escapeHtml(`${c.title} ${c.type} ${c.affectedDevices.join(" ")} ${c.testersInvolved.join(" ")}`).toLowerCase()}">
             <div class="cluster-header">
               <span class="cluster-title">[${c.severity.toUpperCase()}] ${escapeHtml(c.title)}</span>
               <span class="cluster-meta">${c.findingsCount} tester finding(s) · Type: <code>${c.type}</code></span>
@@ -387,6 +474,25 @@ export function renderHtmlReport(report: AuditReport): string {
       Generated by <strong>CrowdQA</strong> · Automated PII scrub applied · Zero runtime dependencies
     </div>
   </div>
+
+  <script>
+    let activeFilter = 'all';
+    function filterSeverity(sev) {
+      activeFilter = sev;
+      document.querySelectorAll('.filter-btn').forEach(b => {
+        b.classList.toggle('active', b.textContent.toLowerCase().includes(sev));
+      });
+      applySearch();
+    }
+    function applySearch() {
+      const query = (document.getElementById('defect-search')?.value || '').toLowerCase().trim();
+      document.querySelectorAll('.cluster-card').forEach(card => {
+        const matchesFilter = activeFilter === 'all' || card.getAttribute('data-severity') === activeFilter;
+        const matchesQuery = !query || card.getAttribute('data-search').includes(query);
+        card.style.display = matchesFilter && matchesQuery ? 'block' : 'none';
+      });
+    }
+  </script>
 </body>
 </html>`;
 }

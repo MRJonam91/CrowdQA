@@ -20,5 +20,7 @@
   ],
   "expectedBehavior": "Dropdown options clearly visible above sticky bottom CTA bar",
   "actualBehavior": "Sticky bar covers lower half of month options, forcing awkward double scrolling",
-  "createdAt": "2026-11-06T14:35:00.000Z"
+  "createdAt": "2026-11-06T14:35:00.000Z",
+  "sanitized": true,
+  "redactedFields": []
 }

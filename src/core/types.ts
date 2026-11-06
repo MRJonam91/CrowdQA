@@ -145,6 +145,10 @@ export interface AuditMetrics {
   suggestionsCount: number;
   taskCompletionRate: number;
   frictionScore: number;
+  crowdScore: number;
+  grade: "A+" | "A" | "B" | "C" | "D" | "F";
+  defectDensityIndex: number;
+  interTesterAgreement: number;
   severityDistribution: Record<FindingSeverity, number>;
   typeDistribution: Record<FindingType, number>;
   gateEvaluation: GateEvaluation;

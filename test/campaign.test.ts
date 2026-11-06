@@ -125,3 +125,22 @@ test("evaluateQualityGates marks CONDITIONAL status for non-blocker violations",
   assert.equal(evalResult.status, "CONDITIONAL");
 });
 
+test("evaluateQualityGates evaluates multiple scenario steps correctly", () => {
+  const campaign = validateCampaign({
+    id: "c-multi",
+    title: "Multi Step Campaign",
+    targetUrl: "https://example.com",
+    steps: [
+      { id: "s1", instruction: "1", expectedOutcome: "1" },
+      { id: "s2", instruction: "2", expectedOutcome: "2" },
+      { id: "s3", instruction: "3", expectedOutcome: "3" },
+    ],
+    gates: { maxBlockers: 0, maxCritical: 2, minTaskCompletionRate: 80, requireConsentProof: false },
+  });
+
+  const evalResult = evaluateQualityGates(campaign, [], []);
+  assert.equal(evalResult.passed, true);
+  assert.equal(evalResult.status, "PASSED");
+});
+
+

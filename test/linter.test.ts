@@ -84,3 +84,20 @@ test("evaluateHeuristics categorizes findings accurately", () => {
   assert.equal(a11y?.count, 1);
   assert.equal(a11y?.severities.minor, 1);
 });
+
+test("lintCampaign accepts optional steps gracefully", () => {
+  const campaign = validateCampaign({
+    id: "camp-opt",
+    title: "Optional Step Campaign",
+    targetUrl: "https://example.com/flow",
+    steps: [
+      { id: "s-1", instruction: "Primary step", expectedOutcome: "Success" },
+      { id: "s-2", instruction: "Optional survey", expectedOutcome: "Feedback received", optional: true },
+    ],
+  });
+
+  const issues = lintCampaign(campaign);
+  assert.equal(issues.filter((i) => i.level === "error").length, 0);
+  assert.equal(campaign.steps[1]?.optional, true);
+});
+

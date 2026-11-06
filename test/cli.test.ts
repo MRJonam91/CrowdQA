@@ -44,7 +44,13 @@ test("CLI export converts report into SARIF format", () => {
   const outFile = "test-export.sarif";
   if (existsSync(outFile)) unlinkSync(outFile);
 
-  execSync(`node src/cli/index.ts export --report reports/audit-report-campaign-ecommerce-checkout.json --format sarif --out ${outFile}`, {
+  // Generate fresh report hermetically
+  execSync("node src/cli/index.ts report --campaign examples/sample-campaign.json --findings-dir examples/findings --out-dir test-reports", {
+    encoding: "utf8",
+    env: { ...process.env, NO_SPONSOR: "1" },
+  });
+
+  execSync(`node src/cli/index.ts export --report test-reports/audit-report-campaign-ecommerce-checkout.json --format sarif --out ${outFile}`, {
     encoding: "utf8",
     env: { ...process.env, NO_SPONSOR: "1" },
   });
@@ -52,3 +58,26 @@ test("CLI export converts report into SARIF format", () => {
   assert.ok(existsSync(outFile));
   if (existsSync(outFile)) unlinkSync(outFile);
 });
+
+test("CLI export converts report into JUnit XML format", () => {
+  const outFile = "test-export.junit.xml";
+  if (existsSync(outFile)) unlinkSync(outFile);
+
+  execSync(`node src/cli/index.ts export --report test-reports/audit-report-campaign-ecommerce-checkout.json --format junit --out ${outFile}`, {
+    encoding: "utf8",
+    env: { ...process.env, NO_SPONSOR: "1" },
+  });
+
+  assert.ok(existsSync(outFile));
+  if (existsSync(outFile)) unlinkSync(outFile);
+});
+
+test("CLI submit --dir processes batch findings", () => {
+  const output = execSync("node src/cli/index.ts submit --dir examples/findings", {
+    encoding: "utf8",
+    env: { ...process.env, NO_SPONSOR: "1" },
+  }).trim();
+
+  assert.ok(output.includes("Batch ingested and sanitized"));
+});
+

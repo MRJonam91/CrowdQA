@@ -20,5 +20,7 @@
   ],
   "expectedBehavior": "Applied coupon badge with discount amount deducted",
   "actualBehavior": "Infinite spinning wheel on submit button, UI freezes",
-  "createdAt": "2026-11-06T14:22:00.000Z"
+  "createdAt": "2026-11-06T14:22:00.000Z",
+  "sanitized": true,
+  "redactedFields": []
 }

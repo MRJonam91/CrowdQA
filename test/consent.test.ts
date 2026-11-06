@@ -25,3 +25,11 @@ test("verifyTesterConsent rejects tampered agreement", () => {
 
   assert.equal(verifyTesterConsent(tampered), false);
 });
+
+test("createTesterConsent preserves deterministic timestamp when provided", () => {
+  const ts = "2026-05-01T12:00:00.000Z";
+  const consent = createTesterConsent("tester-fixed", "campaign-101", ts);
+  assert.equal(consent.signedAt, ts);
+  assert.equal(verifyTesterConsent(consent), true);
+});
+

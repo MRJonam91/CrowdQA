@@ -70,10 +70,10 @@ npx crowdqa report --campaign crowdqa.campaign.json --findings-dir findings/ --o
 | `crowdqa init [name]` | Scaffold a new declarative `crowdqa.campaign.json` |
 | `crowdqa check --campaign <file>` | Lint and validate campaign setup, viewports, and quality gates |
 | `crowdqa consent --tester <id> --campaign <id>` | Generate and cryptographically sign tester NDA |
-| `crowdqa submit --file <path.json>` | Validate finding and sanitize PII from evidence |
+| `crowdqa submit --file <path.json> \| --dir <folder>` | Validate finding(s) and sanitize PII from evidence |
 | `crowdqa cluster --findings-dir <dir>` | Group and deduplicate findings across crowd submissions |
 | `crowdqa report --campaign <file> --findings-dir <dir>` | Generate Markdown, JSON, and HTML audit reports |
-| `crowdqa export --report <file.json> --format <sarif\|csv\|issues>` | Export audit findings to SARIF 2.1.0, CSV, or GitHub Issues |
+| `crowdqa export --report <file.json> --format <sarif\|junit\|csv\|issues>` | Export audit findings to SARIF 2.1.0, JUnit XML, CSV, or GitHub Issues |
 | `crowdqa serve --report <path.html> [--port 3000]` | Host local interactive preview server for HTML audit report |
 | `crowdqa verify --report <file>` | Verify report cryptographic signature and quality gates |
 | `crowdqa demo` | Run full simulation with sample testers and findings |
